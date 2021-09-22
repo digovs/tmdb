@@ -1,33 +1,34 @@
 package com.bench.themoviedatabase.login.ui
 
 import android.util.Patterns
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.bench.themoviedatabase.R
 import com.bench.themoviedatabase.login.data.LoginRepository
 import com.bench.themoviedatabase.login.data.Result
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
 
-    // TODO: introduce kotlin Flows
-    private val _loginForm = MutableLiveData<LoginFormState>(LoginFormState())
-    val loginFormState: LiveData<LoginFormState> = _loginForm
+    private val _loginForm = MutableStateFlow(LoginFormState())
+    val loginFormState: StateFlow<LoginFormState> = _loginForm
 
-    // TODO: introduce kotlin Flows
-    private val _loginResult = MutableLiveData<LoginResult>()
-    val loginResult: LiveData<LoginResult> = _loginResult
+    private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
+    val loginUiState: StateFlow<LoginUiState> = _loginUiState
 
     fun login(username: String, password: String) {
-        // can be launched in a separate asynchronous job
+        _loginUiState.value = LoginUiState.Loading
+
         val result = loginRepository.login(username, password)
 
         if (result is Result.Success) {
-            _loginResult.value =
-                LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
+            _loginUiState.value =
+                LoginUiState.Success(userView = LoggedInUserView(displayName = result.data.displayName))
         } else {
-            _loginResult.value = LoginResult(error = R.string.login_failed)
+            _loginUiState.value = LoginUiState.Error(msgResId = R.string.login_failed)
         }
+
+        _loginUiState.value = LoginUiState.Idle
     }
 
     fun loginDataChanged(username: String, password: String) {

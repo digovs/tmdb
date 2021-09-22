@@ -7,13 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.bench.themoviedatabase.R
 import com.bench.themoviedatabase.databinding.FragmentLoginBinding
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.collect
 
 class LoginFragment : Fragment() {
 
@@ -44,11 +45,8 @@ class LoginFragment : Fragment() {
         val loginButton = binding.login
         val loadingProgressBar = binding.loading
 
-        loginViewModel.loginFormState.observe(viewLifecycleOwner,
-            Observer { loginFormState ->
-                if (loginFormState == null) {
-                    return@Observer
-                }
+        lifecycleScope.launchWhenStarted {
+            loginViewModel.loginFormState.collect { loginFormState ->
                 loginButton.isEnabled = loginFormState.isDataValid
                 loginFormState.usernameError?.let {
                     usernameEditText.error = getString(it)
@@ -56,19 +54,18 @@ class LoginFragment : Fragment() {
                 loginFormState.passwordError?.let {
                     passwordEditText.error = getString(it)
                 }
-            })
+            }
 
-        loginViewModel.loginResult.observe(viewLifecycleOwner,
-            Observer { loginResult ->
-                loginResult ?: return@Observer
-                loadingProgressBar.visibility = View.GONE
-                loginResult.error?.let {
-                    showLoginFailed(it)
+            loginViewModel.loginUiState.collect { loginUiState ->
+                loadingProgressBar.visibility = if (loginUiState is LoginUiState.Loading) View.VISIBLE else View.GONE
+
+                when (loginUiState) {
+                    is LoginUiState.Success -> updateUiWithUser(loginUiState.userView)
+                    is LoginUiState.Error -> showLoginFailed(loginUiState.msgResId)
+                    else -> {} // do nothing
                 }
-                loginResult.success?.let {
-                    updateUiWithUser(it)
-                }
-            })
+            }
+        }
 
         val afterTextChangedListener = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
@@ -110,13 +107,11 @@ class LoginFragment : Fragment() {
     private fun updateUiWithUser(model: LoggedInUserView) {
         val welcome = getString(R.string.welcome) + model.displayName
         // TODO : initiate successful logged in experience
-        val appContext = context?.applicationContext ?: return
-        Toast.makeText(appContext, welcome, Toast.LENGTH_LONG).show()
+        Snackbar.make(binding.root, welcome, Snackbar.LENGTH_LONG).show()
     }
 
     private fun showLoginFailed(@StringRes errorString: Int) {
-        val appContext = context?.applicationContext ?: return
-        Toast.makeText(appContext, errorString, Toast.LENGTH_LONG).show()
+        Snackbar.make(binding.root, errorString, Snackbar.LENGTH_LONG).show()
     }
 
     override fun onDestroyView() {
