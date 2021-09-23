@@ -2,4 +2,10 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="fragment_horizontal_margin">16dp</dimen>
     <dimen name="fragment_vertical_margin">16dp</dimen>
+    <dimen name="text_field_min_height">48dp</dimen>
+
+    <!-- Login Screen -->
+    <dimen name="login_margin_top">96dp</dimen>
+    <dimen name="password_margin_top">8dp</dimen>
+    <dimen name="loading_margin_top">16dp</dimen>
 </resources>
