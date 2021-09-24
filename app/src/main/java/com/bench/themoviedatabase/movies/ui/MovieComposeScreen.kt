@@ -3,6 +3,7 @@ package com.bench.themoviedatabase.movies.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberImagePainter
 import com.bench.themoviedatabase.R
 import com.bench.themoviedatabase.movies.data.model.MovieItem
@@ -25,28 +27,53 @@ import com.bench.themoviedatabase.movies.data.model.MovieItem
 fun MovieScreen(
     @PreviewParameter(FakeMovieListViewModelProvider::class) viewModel: IMovieListViewModel
 ) {
-    val listOfMovies = viewModel.movieItemsLiveData.observeAsState()
+    val listOfMovies = viewModel.recentMovieItemsLiveData.observeAsState()
+    val lazyMovieItems = viewModel.genresWithMoviesFlow.collectAsLazyPagingItems()
     Box(
         modifier = Modifier
             .background(Color.White)
             .fillMaxSize()
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text(stringResource(R.string.movies_list_recent_release_title))
-            LazyRow(
-                Modifier
-                    .fillMaxWidth()
-                    .height(330.dp)
-                    .padding(vertical = 20.dp)
-            ) {
-                listOfMovies.value?.forEach { movieItem ->
-                    item {
-                        MovieItem(movieItem = movieItem)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            content = {
+                item {
+                    Text(stringResource(R.string.movies_list_recent_release_title))
+                    LazyRow(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(330.dp)
+                            .padding(vertical = 20.dp)
+                    ) {
+                        listOfMovies.value?.forEach { movieItem ->
+                            item {
+                                MovieItem(movieItem = movieItem)
+                            }
+                        }
+
                     }
                 }
+                items(lazyMovieItems.itemCount) { index ->
+                    lazyMovieItems[index]?.let { movieItemsWithSection ->
+                        Text(
+                            text = movieItemsWithSection.sectionName
+                        )
+                        LazyRow(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(330.dp)
+                                .padding(vertical = 20.dp)
+                        ) {
+                            movieItemsWithSection.movies.forEach { movieItem ->
+                                item {
+                                    MovieItem(movieItem = movieItem)
+                                }
+                            }
 
-            }
-        }
+                        }
+                    }
+                }
+            })
     }
 }
 
