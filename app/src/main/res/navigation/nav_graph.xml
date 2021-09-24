@@ -10,4 +10,9 @@
         android:name="com.bench.themoviedatabase.login.ui.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" />
+    <fragment
+        android:id="@+id/movieListFragment"
+        android:name="com.bench.themoviedatabase.movies.ui.MovieListFragment"
+        android:label="movie_list_fragment"
+        tools:layout="@layout/movie_list_fragment" />
 </navigation>

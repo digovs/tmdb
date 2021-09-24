@@ -1,11 +1,15 @@
 package com.bench.themoviedatabase.remote
 
+import com.bench.themoviedatabase.BuildConfig
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 /**
@@ -14,17 +18,32 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object MoviesApiModule {
+    private const val TMDB_BASE_URL = "https://api.themoviedb.org/"
 
     @Singleton
     @Provides
-    fun providesOkHttpClient(): OkHttpClient =
-        OkHttpClient
-            .Builder()
-            .build()
+    fun providesOkHttpClient(): OkHttpClient {
+        return if (BuildConfig.DEBUG) {
+            val logging: HttpLoggingInterceptor = HttpLoggingInterceptor()
+            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            OkHttpClient
+                .Builder()
+                .addInterceptor(logging)
+                .addInterceptor(TokenInterceptor())
+                .build()
+        } else {
+            OkHttpClient
+                .Builder()
+                .addInterceptor(TokenInterceptor())
+                .build()
+        }
+    }
 
     @Singleton
     @Provides
     fun providesRetrofit(okHttpClient: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(TMDB_BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create(Gson()))
         .client(okHttpClient)
         .build()
 
