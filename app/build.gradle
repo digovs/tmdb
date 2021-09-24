@@ -5,6 +5,9 @@ plugins {
     id 'dagger.hilt.android.plugin'
 }
 
+apply from: "sonarqube.gradle"
+apply from: "jacoco.gradle"
+
 android {
     compileSdk 30
 
@@ -27,6 +30,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            applicationIdSuffix ".debug"
+            minifyEnabled false
+            testCoverageEnabled true
         }
     }
     compileOptions {
