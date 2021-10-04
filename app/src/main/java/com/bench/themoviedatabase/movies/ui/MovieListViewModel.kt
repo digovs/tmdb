@@ -22,10 +22,10 @@ class MovieListViewModel @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val movieRepository: MovieRepository,
     private val moviePagingSource: MoviePagingSource
-)  : ViewModel(), IMovieListViewModel {
+)  : ViewModel() {
 
-    override val recentMovieItemsLiveData = MutableLiveData<List<MovieItem>>()
-    override val genresWithMoviesFlow: Flow<PagingData<MovieItemsWithSection>>
+    val recentMovieItemsLiveData = MutableLiveData<List<MovieItem>>()
+    val genresWithMoviesFlow: Flow<PagingData<MovieItemsWithSection>>
         get() = Pager(PagingConfig(SECTIONS_PER_PAGE)) { moviePagingSource }.flow
 
     init {
