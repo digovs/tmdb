@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk 30
+    compileSdk 31
 
     defaultConfig {
         applicationId "com.bench.themoviedatabase"
         minSdk 23
-        targetSdk 30
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
@@ -106,6 +106,9 @@ dependencies {
 
     // UI Tests
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.0.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-beta01'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-beta01'
 
     // Unit Test
     testImplementation "org.mockito.kotlin:mockito-kotlin:3.2.0"

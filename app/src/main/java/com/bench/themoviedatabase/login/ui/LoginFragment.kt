@@ -9,12 +9,15 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.bench.themoviedatabase.R
 import com.bench.themoviedatabase.databinding.FragmentLoginBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
 
@@ -45,24 +48,32 @@ class LoginFragment : Fragment() {
         val loginButton = binding.login
         val loadingProgressBar = binding.loading
 
-        lifecycleScope.launchWhenStarted {
-            loginViewModel.loginFormState.collect { loginFormState ->
-                loginButton.isEnabled = loginFormState.isDataValid
-                loginFormState.usernameError?.let {
-                    usernameEditText.error = getString(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    loginViewModel.loginFormState.collect { loginFormState ->
+                        loginButton.isEnabled = loginFormState.isDataValid
+                        loginFormState.usernameError?.let {
+                            usernameEditText.error = getString(it)
+                        }
+                        loginFormState.passwordError?.let {
+                            passwordEditText.error = getString(it)
+                        }
+                    }
                 }
-                loginFormState.passwordError?.let {
-                    passwordEditText.error = getString(it)
-                }
-            }
 
-            loginViewModel.loginUiState.collect { loginUiState ->
-                loadingProgressBar.visibility = if (loginUiState is LoginUiState.Loading) View.VISIBLE else View.GONE
+                launch {
+                    loginViewModel.loginUiState.collect { loginUiState ->
+                        loadingProgressBar.visibility =
+                            if (loginUiState is LoginUiState.Loading) View.VISIBLE else View.GONE
 
-                when (loginUiState) {
-                    is LoginUiState.Success -> updateUiWithUser(loginUiState.userView)
-                    is LoginUiState.Error -> showLoginFailed(loginUiState.msgResId)
-                    else -> {} // do nothing
+                        when (loginUiState) {
+                            is LoginUiState.Success -> updateUiWithUser(loginUiState.userView)
+                            is LoginUiState.Error -> showLoginFailed(loginUiState.msgResId)
+                            else -> {
+                            } // do nothing
+                        }
+                    }
                 }
             }
         }
