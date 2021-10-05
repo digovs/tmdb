@@ -12,7 +12,7 @@ import com.bench.themoviedatabase.login.ui.LoginViewModel
 import com.bench.themoviedatabase.movies.ui.MovieListViewModel
 import com.bench.themoviedatabase.movies.ui.MovieScreen
 
-object MainDestinations{
+object MainDestinations {
     const val LOGIN = "LOGIN"
     const val MOVIES = "MOVIES"
 }
@@ -22,19 +22,22 @@ object MainDestinations{
 fun TheMovieDatabaseNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = MainDestinations.LOGIN
-){
+) {
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
         composable(MainDestinations.MOVIES) {
             val viewModel = hiltViewModel<MovieListViewModel>()
-            MovieScreen(viewModel = viewModel)
+            MovieScreen(navController = navController, viewModel = viewModel)
         }
 
-        composable(MainDestinations.LOGIN){
+        composable(MainDestinations.LOGIN) {
             val viewModel = hiltViewModel<LoginViewModel>()
-            LoginScreen(loginViewModel = viewModel)
+            LoginScreen(
+                navigateToMovie = { navController.navigate(MainDestinations.MOVIES) },
+                loginViewModel = viewModel
+            )
         }
     }
 }
