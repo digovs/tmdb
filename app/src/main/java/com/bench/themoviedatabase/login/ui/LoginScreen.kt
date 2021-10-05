@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bench.themoviedatabase.R
 
@@ -29,7 +30,9 @@ fun LoginScreen(
 ) {
     val loginFormState = loginViewModel.loginFormState.collectAsState()
     val loginUiState = loginViewModel.loginUiState.collectAsState()
+    val loginSnackBarState = loginViewModel.snackBarState.collectAsState()
     LoginLayout(
+        snackBarState = loginSnackBarState.value,
         loginFormState = loginFormState.value,
         loginUiState = loginUiState.value,
         onLoginFormChanged = loginViewModel::loginDataChanged,
@@ -40,28 +43,32 @@ fun LoginScreen(
 @ExperimentalComposeUiApi
 @Composable
 fun LoginLayout(
+    snackBarState: SnackBarState,
     loginFormState: LoginFormState,
     loginUiState: LoginUiState,
     onLoginFormChanged: (String, String) -> Unit,
     onLogin: (String, String) -> Unit
 ) {
+    val viewModel: LoginViewModel = hiltViewModel()
     val scaffoldState = rememberScaffoldState()
 
-    if (loginUiState is LoginUiState.Error) {
-        val message = stringResource(id = loginUiState.msgResId)
+
+    if (snackBarState is SnackBarState.SnackBarActiveState) {
+        val errorMsg = stringResource(
+            id = snackBarState.messageId
+        )
         LaunchedEffect(scaffoldState.snackbarHostState) {
-            scaffoldState.snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Long
-            )
-        }
-    } else if (loginUiState is LoginUiState.Success) {
-        val messageTemplate = stringResource(id = R.string.welcome)
-        LaunchedEffect(scaffoldState.snackbarHostState) {
-            scaffoldState.snackbarHostState.showSnackbar(
-                message = String.format(messageTemplate, loginUiState.userView.displayName),
-                duration = SnackbarDuration.Long
-            )
+            val result = scaffoldState.snackbarHostState.showSnackbar(
+                message = snackBarState.message.takeIf { msg -> msg.isNotBlank() }
+                    ?: errorMsg,
+                duration = SnackbarDuration.Long,
+
+                )
+            when (result) {
+                SnackbarResult.Dismissed -> viewModel.setSnackBarInactiveState()
+                else -> {
+                }
+            }
         }
     }
 
@@ -163,6 +170,7 @@ fun LoginForm(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
+            val scope = rememberCoroutineScope()
             Spacer(modifier = Modifier.weight(1f))
             Button(
                 enabled = loginFormState.isDataValid,
@@ -187,6 +195,7 @@ fun LoginForm(
 fun PreviewLoginLayout() {
     val lambda = { text1: String, text2: String -> }
     LoginLayout(
+        snackBarState = SnackBarState.SnackBarActiveState(message = "Preview"),
         loginFormState = LoginFormState(
             isDataValid = true
         ),
@@ -202,6 +211,7 @@ fun PreviewLoginLayout() {
 fun PreviewLoginLayoutWithError() {
     val lambda = { text1: String, text2: String -> }
     LoginLayout(
+        snackBarState = SnackBarState.SnackBarActiveState(message = "Preview"),
         loginFormState = LoginFormState(
             usernameError = R.string.invalid_username,
             passwordError = R.string.invalid_password,
@@ -219,6 +229,7 @@ fun PreviewLoginLayoutWithError() {
 fun PreviewLoadingLoginLayout() {
     val lambda = { text1: String, text2: String -> }
     LoginLayout(
+        snackBarState = SnackBarState.SnackBarActiveState(message = "Preview"),
         loginFormState = LoginFormState(
             isDataValid = true
         ),
