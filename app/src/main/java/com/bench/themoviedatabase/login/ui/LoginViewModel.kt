@@ -12,40 +12,80 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class LoginUiState constructor(
+    val usernameError: Int? = null,
+    val passwordError: Int? = null,
+    val isDataValid: Boolean = false,
+    val showLoading: Boolean = false,
+    val loginStatus: LoginStatus? = null
+)
+
+sealed class LoginStatus{
+    class Success(val name: String): LoginStatus()
+    class Fail: LoginStatus()
+}
+
 @HiltViewModel
 class LoginViewModel @Inject constructor(private val loginRepository: LoginRepository) : ViewModel() {
 
-    private val _loginForm = MutableStateFlow(LoginFormState())
-    val loginFormState: StateFlow<LoginFormState> = _loginForm
-
-    private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
+    private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState())
     val loginUiState: StateFlow<LoginUiState> = _loginUiState
 
     fun login(username: String, password: String) {
         viewModelScope.launch {
-            _loginUiState.emit(LoginUiState.Loading)
+            _loginUiState.update { it.copy(
+                showLoading = true,
+                loginStatus = null
+            ) }
 
             val result = loginRepository.login(username, password)
+
+            // delay to simulate network call
+            delay(500)
+
             if (result is Result.Success) {
-                _loginUiState.emit(LoginUiState.Success(userView = LoggedInUserView(displayName = result.data.displayName)))
+                _loginUiState.update { it.copy(
+                    showLoading = false,
+                    loginStatus = LoginStatus.Success(result.data.displayName)
+                )}
 
             } else {
-                _loginUiState.emit(LoginUiState.Error(msgResId = R.string.login_failed))
+                _loginUiState.update { it.copy(
+                    showLoading = false,
+                    loginStatus = LoginStatus.Fail()
+                )}
             }
-
-            delay(500)
-            _loginUiState.emit(LoginUiState.Idle)
         }
     }
 
     fun loginDataChanged(username: String, password: String) {
         viewModelScope.launch {
-            if (!isUserNameValid(username)) {
-                _loginForm.emit(LoginFormState(usernameError = R.string.invalid_username))
-            } else if (!isPasswordValid(password)) {
-                _loginForm.emit(LoginFormState(passwordError = R.string.invalid_password))
+            val validUserName = isUserNameValid(username)
+            val validPassword = isPasswordValid(password)
+            if (!validUserName && !validPassword) {
+                _loginUiState.update { it.copy(
+                    usernameError = R.string.invalid_username,
+                    passwordError = R.string.invalid_password,
+                    isDataValid = false
+                )}
+            } else if (!validPassword) {
+                _loginUiState.update { it.copy(
+                    usernameError = null,
+                    passwordError = R.string.invalid_password,
+                    isDataValid = false
+                )}
+            } else if (!validUserName){
+                _loginUiState.update { it.copy(
+                    usernameError = R.string.invalid_username,
+                    passwordError = null,
+                    isDataValid = false
+                )}
             } else {
-                _loginForm.emit(LoginFormState(isDataValid = true))
+                _loginUiState.update { it.copy(
+                    usernameError = null,
+                    passwordError = null,
+                    isDataValid = true
+                )}
             }
         }
     }

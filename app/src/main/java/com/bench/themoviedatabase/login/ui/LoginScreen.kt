@@ -27,10 +27,8 @@ import com.bench.themoviedatabase.R
 fun LoginScreen(
     loginViewModel: LoginViewModel = viewModel()
 ) {
-    val loginFormState = loginViewModel.loginFormState.collectAsState()
     val loginUiState = loginViewModel.loginUiState.collectAsState()
     LoginLayout(
-        loginFormState = loginFormState.value,
         loginUiState = loginUiState.value,
         onLoginFormChanged = loginViewModel::loginDataChanged,
         onLogin = loginViewModel::login
@@ -40,27 +38,26 @@ fun LoginScreen(
 @ExperimentalComposeUiApi
 @Composable
 fun LoginLayout(
-    loginFormState: LoginFormState,
     loginUiState: LoginUiState,
     onLoginFormChanged: (String, String) -> Unit,
     onLogin: (String, String) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
 
-    if (loginUiState is LoginUiState.Error) {
-        val message = stringResource(id = loginUiState.msgResId)
-        LaunchedEffect(scaffoldState.snackbarHostState) {
+    if (loginUiState.loginStatus is LoginStatus.Fail) {
+        val message = stringResource(id = R.string.login_failed)
+        LaunchedEffect(scaffoldState.snackbarHostState){
             scaffoldState.snackbarHostState.showSnackbar(
                 message = message,
-                duration = SnackbarDuration.Long
+                duration = SnackbarDuration.Short
             )
         }
-    } else if (loginUiState is LoginUiState.Success) {
+    } else if (loginUiState.loginStatus is LoginStatus.Success) {
         val messageTemplate = stringResource(id = R.string.welcome)
-        LaunchedEffect(scaffoldState.snackbarHostState) {
+        LaunchedEffect(scaffoldState.snackbarHostState){
             scaffoldState.snackbarHostState.showSnackbar(
-                message = String.format(messageTemplate, loginUiState.userView.displayName),
-                duration = SnackbarDuration.Long
+                message = String.format(messageTemplate, loginUiState.loginStatus.name),
+                duration = SnackbarDuration.Short
             )
         }
     }
@@ -74,11 +71,11 @@ fun LoginLayout(
         ) {
 
             LoginForm(
-                loginFormState = loginFormState,
+                loginUiState = loginUiState,
                 onLoginFormChanged = onLoginFormChanged,
                 onLogin = onLogin
             )
-            if (loginUiState == LoginUiState.Loading) {
+            if (loginUiState.showLoading) {
                 CircularProgressIndicator()
             }
         }
@@ -89,7 +86,7 @@ fun LoginLayout(
 @ExperimentalComposeUiApi
 @Composable
 fun LoginForm(
-    loginFormState: LoginFormState,
+    loginUiState: LoginUiState,
     onLoginFormChanged: (String, String) -> Unit,
     onLogin: (String, String) -> Unit
 ) {
@@ -120,12 +117,12 @@ fun LoginForm(
                     focusRequester.requestFocus()
                 }
             ),
-            isError = loginFormState.usernameError != null
+            isError = loginUiState.usernameError != null
         )
-        if (loginFormState.usernameError != null) {
+        if (loginUiState.usernameError != null) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(id = loginFormState.usernameError),
+                text = stringResource(id = loginUiState.usernameError),
                 color = Color.Red,
                 textAlign = TextAlign.Start
             )
@@ -149,12 +146,12 @@ fun LoginForm(
             ),
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.focusRequester(focusRequester),
-            isError = loginFormState.passwordError != null
+            isError = loginUiState.passwordError != null
         )
-        if (loginFormState.passwordError != null) {
+        if (loginUiState.passwordError != null) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(id = loginFormState.passwordError),
+                text = stringResource(id = loginUiState.passwordError),
                 color = Color.Red,
                 textAlign = TextAlign.Start
             )
@@ -165,7 +162,7 @@ fun LoginForm(
         ) {
             Spacer(modifier = Modifier.weight(1f))
             Button(
-                enabled = loginFormState.isDataValid,
+                enabled = loginUiState.isDataValid,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
@@ -187,10 +184,9 @@ fun LoginForm(
 fun PreviewLoginLayout() {
     val lambda = { text1: String, text2: String -> }
     LoginLayout(
-        loginFormState = LoginFormState(
+        loginUiState = LoginUiState(
             isDataValid = true
         ),
-        loginUiState = LoginUiState.Idle,
         onLoginFormChanged = lambda,
         onLogin = lambda
     )
@@ -202,12 +198,11 @@ fun PreviewLoginLayout() {
 fun PreviewLoginLayoutWithError() {
     val lambda = { text1: String, text2: String -> }
     LoginLayout(
-        loginFormState = LoginFormState(
+        loginUiState = LoginUiState(
             usernameError = R.string.invalid_username,
             passwordError = R.string.invalid_password,
             isDataValid = false
         ),
-        loginUiState = LoginUiState.Idle,
         onLoginFormChanged = lambda,
         onLogin = lambda
     )
@@ -219,10 +214,10 @@ fun PreviewLoginLayoutWithError() {
 fun PreviewLoadingLoginLayout() {
     val lambda = { text1: String, text2: String -> }
     LoginLayout(
-        loginFormState = LoginFormState(
-            isDataValid = true
+        loginUiState = LoginUiState(
+            isDataValid = true,
+            showLoading = true
         ),
-        loginUiState = LoginUiState.Idle,
         onLoginFormChanged = lambda,
         onLogin = lambda
     )
