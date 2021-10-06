@@ -19,9 +19,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import com.bench.themoviedatabase.MainDestinations
 import com.bench.themoviedatabase.R
 
 @ExperimentalComposeUiApi
@@ -32,10 +31,12 @@ fun LoginScreen(
 ) {
     val loginFormState = loginViewModel.loginFormState.collectAsState()
     val loginUiState = loginViewModel.loginUiState.collectAsState()
+    val snackbarState = loginViewModel.snackbarState.collectAsState()
     LoginLayout(
         navigateToMovie = navigateToMovie,
         loginFormState = loginFormState.value,
         loginUiState = loginUiState.value,
+        snackbarState = snackbarState.value,
         onLoginFormChanged = loginViewModel::loginDataChanged,
         onLogin = loginViewModel::login
     )
@@ -48,22 +49,29 @@ fun LoginLayout(
     loginUiState: LoginUiState,
     onLoginFormChanged: (String, String) -> Unit,
     onLogin: (String, String) -> Unit,
-    navigateToMovie: () -> Unit = {}
+    navigateToMovie: () -> Unit = {},
+    snackbarState: SnackbarState,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val scaffoldState = rememberScaffoldState()
-
-    if (loginUiState is LoginUiState.Error) {
-        val message = stringResource(id = loginUiState.msgResId)
-        LaunchedEffect(scaffoldState.snackbarHostState) {
-            scaffoldState.snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Long
-            )
-        }
-    } else if (loginUiState is LoginUiState.Success) {
+    if (loginUiState is LoginUiState.Success) {
         val messageTemplate = stringResource(id = R.string.welcome)
         navigateToMovie()
     }
+    if (snackbarState is SnackbarState.Active) {
+        LaunchedEffect(scaffoldState.snackbarHostState) {
+            val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(
+                message = snackbarState.message,
+                duration = SnackbarDuration.Long
+            )
+            when (snackbarResult) {
+                SnackbarResult.Dismissed -> viewModel.setSnackbarInactive()
+                else -> {
+                }
+            }
+        }
+    }
+
 
     Scaffold(
         scaffoldState = scaffoldState
@@ -72,15 +80,17 @@ fun LoginLayout(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-
-            LoginForm(
-                loginFormState = loginFormState,
-                onLoginFormChanged = onLoginFormChanged,
-                onLogin = onLogin
-            )
             if (loginUiState == LoginUiState.Loading) {
                 CircularProgressIndicator()
+            } else {
+
+                LoginForm(
+                    loginFormState = loginFormState,
+                    onLoginFormChanged = onLoginFormChanged,
+                    onLogin = onLogin
+                )
             }
+
         }
 
     }
@@ -192,7 +202,8 @@ fun PreviewLoginLayout() {
         ),
         loginUiState = LoginUiState.Idle,
         onLoginFormChanged = lambda,
-        onLogin = lambda
+        onLogin = lambda,
+        snackbarState = SnackbarState.Inactive()
     )
 }
 
@@ -205,11 +216,12 @@ fun PreviewLoginLayoutWithError() {
         loginFormState = LoginFormState(
             usernameError = R.string.invalid_username,
             passwordError = R.string.invalid_password,
-            isDataValid = false
+            isDataValid = false,
         ),
         loginUiState = LoginUiState.Idle,
         onLoginFormChanged = lambda,
-        onLogin = lambda
+        onLogin = lambda,
+        snackbarState = SnackbarState.Inactive()
     )
 }
 
@@ -224,6 +236,7 @@ fun PreviewLoadingLoginLayout() {
         ),
         loginUiState = LoginUiState.Idle,
         onLoginFormChanged = lambda,
-        onLogin = lambda
+        onLogin = lambda,
+        snackbarState = SnackbarState.Inactive()
     )
 }
