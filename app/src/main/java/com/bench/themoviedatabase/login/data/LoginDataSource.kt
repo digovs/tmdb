@@ -1,6 +1,7 @@
 package com.bench.themoviedatabase.login.data
 
 import com.bench.themoviedatabase.login.data.model.LoggedInUser
+import kotlinx.coroutines.delay
 import java.io.IOException
 import javax.inject.Inject
 
@@ -9,7 +10,8 @@ import javax.inject.Inject
  */
 class LoginDataSource @Inject constructor() {
 
-    fun login(username: String, password: String): Result<LoggedInUser> {
+    suspend fun login(username: String, password: String): Result<LoggedInUser> {
+        delay(1000L)
         try {
             // TODO: handle loggedInUser authentication
             val fakeUser = LoggedInUser(java.util.UUID.randomUUID().toString(), "Jane Doe")
