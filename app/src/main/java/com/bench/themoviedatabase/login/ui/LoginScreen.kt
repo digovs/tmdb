@@ -54,9 +54,14 @@ fun LoginLayout(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val scaffoldState = rememberScaffoldState()
-    if (loginUiState is LoginUiState.Success) {
-        val messageTemplate = stringResource(id = R.string.welcome)
-        navigateToMovie()
+    when (loginUiState) {
+        is LoginUiState.Success -> {
+            navigateToMovie()
+        }
+        is LoginUiState.Error -> {
+        }
+        else -> {
+        }
     }
     if (snackbarState is SnackbarState.Active) {
         LaunchedEffect(scaffoldState.snackbarHostState) {

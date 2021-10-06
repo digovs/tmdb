@@ -5,6 +5,7 @@ import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bench.themoviedatabase.MainApplication
 import com.bench.themoviedatabase.R
 import com.bench.themoviedatabase.login.data.LoginRepository
@@ -50,9 +51,6 @@ class LoginViewModel @Inject constructor(
                     )
                 )
             }
-
-            delay(500)
-            _loginUiState.emit(LoginUiState.Idle)
         }
     }
 
