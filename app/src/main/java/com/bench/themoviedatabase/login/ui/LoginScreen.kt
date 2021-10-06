@@ -20,16 +20,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.bench.themoviedatabase.MainDestinations
 import com.bench.themoviedatabase.R
 
 @ExperimentalComposeUiApi
 @Composable
 fun LoginScreen(
-    loginViewModel: LoginViewModel = viewModel()
+    loginViewModel: LoginViewModel = viewModel(),
+    navigateToMovie: () -> Unit
 ) {
     val loginFormState = loginViewModel.loginFormState.collectAsState()
     val loginUiState = loginViewModel.loginUiState.collectAsState()
     LoginLayout(
+        navigateToMovie = navigateToMovie,
         loginFormState = loginFormState.value,
         loginUiState = loginUiState.value,
         onLoginFormChanged = loginViewModel::loginDataChanged,
@@ -43,7 +47,8 @@ fun LoginLayout(
     loginFormState: LoginFormState,
     loginUiState: LoginUiState,
     onLoginFormChanged: (String, String) -> Unit,
-    onLogin: (String, String) -> Unit
+    onLogin: (String, String) -> Unit,
+    navigateToMovie: () -> Unit = {}
 ) {
     val scaffoldState = rememberScaffoldState()
 
@@ -57,12 +62,7 @@ fun LoginLayout(
         }
     } else if (loginUiState is LoginUiState.Success) {
         val messageTemplate = stringResource(id = R.string.welcome)
-        LaunchedEffect(scaffoldState.snackbarHostState) {
-            scaffoldState.snackbarHostState.showSnackbar(
-                message = String.format(messageTemplate, loginUiState.userView.displayName),
-                duration = SnackbarDuration.Long
-            )
-        }
+        navigateToMovie()
     }
 
     Scaffold(
