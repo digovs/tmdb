@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavHostController
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bench.themoviedatabase.R
@@ -21,16 +22,20 @@ import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun MovieScreen(
-    viewModel: MovieListViewModel
+    viewModel: MovieListViewModel,
+    navController: NavHostController
 ) {
-    MovieContent(movies = viewModel.recentMovieItemsLiveData, genreSections = viewModel.genresWithMoviesFlow)
+    MovieContent(
+        movies = viewModel.recentMovieItemsLiveData,
+        genreSections = viewModel.genresWithMoviesFlow
+    )
 }
 
 @Composable
 fun MovieContent(
     movies: LiveData<List<MovieItem>>,
     genreSections: Flow<PagingData<MovieItemsWithSection>>
-){
+) {
     val listOfMovies = movies.observeAsState()
     val lazyMovieItems = genreSections.collectAsLazyPagingItems()
     LazyColumn(
@@ -58,7 +63,7 @@ fun MovieContent(
 
 @Composable
 @Preview
-fun PreviewHomeContent(){
+fun PreviewHomeContent() {
     val recentMovieItemsLiveData = MutableLiveData<List<MovieItem>>(
         listOf(
             MovieItem(title = "title1", releaseDate = "release date 1"),

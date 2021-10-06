@@ -6,12 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.bench.themoviedatabase.R
 import com.bench.themoviedatabase.login.data.LoginRepository
 import com.bench.themoviedatabase.login.data.Result
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(private val loginRepository: LoginRepository) : ViewModel() {
 
     private val _loginForm = MutableStateFlow(LoginFormState())
     val loginFormState: StateFlow<LoginFormState> = _loginForm
