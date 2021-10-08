@@ -1,7 +1,7 @@
 package com.bench.themoviedatabase.remote
 
 import com.bench.themoviedatabase.BuildConfig
-import com.google.gson.Gson
+import com.bench.themoviedatabase.util.DateConverter.Companion.DATE_FORMAT
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -43,7 +43,7 @@ object MoviesApiModule {
     @Singleton
     @Provides
     fun providesRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        val gson = GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss zz").create()
+        val gson = GsonBuilder().setDateFormat(DATE_FORMAT).create()
         return Retrofit.Builder()
             .baseUrl(TMDB_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create(gson))

@@ -12,6 +12,7 @@ import com.bench.themoviedatabase.login.data.LoginRepository
 import com.bench.themoviedatabase.login.data.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,7 +34,7 @@ class LoginViewModel @Inject constructor(
     val snackbarState: StateFlow<SnackbarState> = _snackbarState
 
     fun login(username: String, password: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _loginUiState.emit(LoginUiState.Loading)
 
             val result = loginRepository.login(username, password)
@@ -55,7 +56,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun loginDataChanged(username: String, password: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             if (!isUserNameValid(username)) {
                 _loginForm.emit(LoginFormState(usernameError = R.string.invalid_username))
             } else if (!isPasswordValid(password)) {
