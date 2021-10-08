@@ -38,8 +38,8 @@ class LoginViewModel @Inject constructor(
 
             val result = loginRepository.login(username, password)
             if (result is Result.Success) {
-                _loginUiState.emit(LoginUiState.Success(userView = LoggedInUserView(displayName = result.data.displayName)))
-                _snackbarState.emit(SnackbarState.Active(message = "Welcome!"))
+                _loginUiState.emit(LoginUiState.Success(userView = LoggedInUserView(displayName = result.data.username)))
+                _snackbarState.emit(SnackbarState.Active(message = "Welcome! ${result.data.username}"))
 
             } else {
                 _loginUiState.emit(LoginUiState.Error(msgResId = R.string.login_failed))

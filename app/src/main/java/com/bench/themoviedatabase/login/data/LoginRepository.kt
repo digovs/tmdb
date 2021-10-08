@@ -1,5 +1,6 @@
 package com.bench.themoviedatabase.login.data
 
+import com.bench.themoviedatabase.login.data.model.LoggedInInfo
 import com.bench.themoviedatabase.login.data.model.LoggedInUser
 import javax.inject.Inject
 
@@ -11,7 +12,7 @@ import javax.inject.Inject
 class LoginRepository @Inject constructor(val dataSource: LoginDataSource) {
 
     // in-memory cache of the loggedInUser object
-    var user: LoggedInUser? = null
+    var user: LoggedInInfo? = null
         private set
 
     val isLoggedIn: Boolean
@@ -28,7 +29,7 @@ class LoginRepository @Inject constructor(val dataSource: LoginDataSource) {
         dataSource.logout()
     }
 
-    suspend fun login(username: String, password: String): Result<LoggedInUser> {
+    suspend fun login(username: String, password: String): Result<LoggedInInfo> {
         // handle login
         val result = dataSource.login(username, password)
 
@@ -39,7 +40,7 @@ class LoginRepository @Inject constructor(val dataSource: LoginDataSource) {
         return result
     }
 
-    private fun setLoggedInUser(loggedInUser: LoggedInUser) {
+    private fun setLoggedInUser(loggedInUser: LoggedInInfo) {
         this.user = loggedInUser
         // If user credentials will be cached in local storage, it is recommended it be encrypted
         // @see https://developer.android.com/training/articles/keystore

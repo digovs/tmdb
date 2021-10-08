@@ -56,7 +56,7 @@ fun LoginLayout(
     val scaffoldState = rememberScaffoldState()
     when (loginUiState) {
         is LoginUiState.Success -> {
-            navigateToMovie()
+//            navigateToMovie()
         }
         is LoginUiState.Error -> {
         }
